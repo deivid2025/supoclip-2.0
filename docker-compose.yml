@@ -64,6 +64,9 @@ services:
       backend:
         condition: service_healthy
     restart: unless-stopped
+    networks:
+      - default
+      - dokploy-network
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3107/"]
       interval: 30s
@@ -130,6 +133,9 @@ services:
       - DISCORD_FEEDBACK_WEBHOOK_URL=${DISCORD_FEEDBACK_WEBHOOK_URL}
       - DISCORD_SALES_WEBHOOK_URL=${DISCORD_SALES_WEBHOOK_URL}
     restart: unless-stopped
+    networks:
+      - default
+      - dokploy-network
     extra_hosts:
       - "host.docker.internal:host-gateway"
     depends_on:
@@ -173,7 +179,6 @@ services:
       retries: 5
       start_period: 20s
 
-  # Worker process for background video processing
   worker:
     build:
       context: ./backend
@@ -239,7 +244,6 @@ services:
       backend:
         condition: service_healthy
 
-  # Redis for caching and job queues (useful for video processing)
   redis:
     image: redis:7-alpine
     container_name: supoclip-redis
@@ -266,7 +270,6 @@ services:
       timeout: 10s
       retries: 3
 
-  # PostgreSQL database for storing video metadata, user data, etc.
   postgres:
     image: postgres:15-alpine
     container_name: supoclip-postgres
@@ -299,3 +302,5 @@ volumes:
 networks:
   default:
     name: supoclip-network
+  dokploy-network:
+    external: true
