@@ -4,6 +4,7 @@ Optimized for free yt-dlp downloads with optional Apify fallback.
 """
 
 import asyncio
+import os
 from datetime import datetime
 import logging
 import re
@@ -26,6 +27,27 @@ YOUTUBE_METADATA_PROVIDER_DATA_API = "youtube_data_api"
 YOUTUBE_DOWNLOAD_PROVIDER_YTDLP = "yt_dlp"
 YOUTUBE_DOWNLOAD_PROVIDER_APIFY = "apify"
 YOUTUBE_DATA_API_URL = "https://www.googleapis.com/youtube/v3/videos"
+
+
+def _get_cookie_file() -> Optional[str]:
+    """
+    Return the path to a YouTube cookies file if YOUTUBE_COOKIES_FILE is set
+    and the file actually exists on disk. Used to help yt-dlp bypass
+    YouTube's "Sign in to confirm you're not a bot" bot-check.
+    """
+    cookie_path = os.getenv("YOUTUBE_COOKIES_FILE")
+    if not cookie_path:
+        return None
+
+    if not Path(cookie_path).is_file():
+        logger.warning(
+            "YOUTUBE_COOKIES_FILE is set to %s but the file was not found; "
+            "continuing without cookies",
+            cookie_path,
+        )
+        return None
+
+    return cookie_path
 
 
 class YouTubeDownloader:
@@ -78,6 +100,11 @@ class YouTubeDownloader:
             "age_limit": None,
         }
 
+        cookie_file = _get_cookie_file()
+        if cookie_file:
+            opts["cookiefile"] = cookie_file
+            logger.info("Using YouTube cookies file for download: %s", cookie_file)
+
         return opts
 
 
@@ -96,6 +123,12 @@ def _build_info_options() -> Dict[str, Any]:
         },
         "nocheckcertificate": True,
     }
+
+    cookie_file = _get_cookie_file()
+    if cookie_file:
+        ydl_opts["cookiefile"] = cookie_file
+        logger.info("Using YouTube cookies file for metadata lookup: %s", cookie_file)
+
     return ydl_opts
 
 
