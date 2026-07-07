@@ -1,6 +1,6 @@
 """
 Utility functions for YouTube-related operations.
-Optimized for free yt-dlp downloads with optional Apify fallback.
+Optimized for free yt-dlp downloads with PO Token provider support.
 """
 
 import asyncio
@@ -27,6 +27,37 @@ YOUTUBE_METADATA_PROVIDER_DATA_API = "youtube_data_api"
 YOUTUBE_DOWNLOAD_PROVIDER_YTDLP = "yt_dlp"
 YOUTUBE_DOWNLOAD_PROVIDER_APIFY = "apify"
 YOUTUBE_DATA_API_URL = "https://www.googleapis.com/youtube/v3/videos"
+
+# PO Token Provider configuration for bypassing YouTube bot-check
+DEFAULT_POT_PROVIDER_URL = "http://pot-provider:4416"
+
+
+def _get_pot_provider_url() -> Optional[str]:
+    """
+    Return the POT provider URL from environment variable.
+    Falls back to Docker service name if running in container.
+    """
+    url = os.getenv("YOUTUBE_POT_PROVIDER_URL")
+    if url:
+        return url.rstrip("/")
+    return DEFAULT_POT_PROVIDER_URL
+
+
+def _build_extractor_args() -> Dict[str, Any]:
+    """
+    Build yt-dlp extractor_args with PO Token provider configuration.
+    This bypasses YouTube's bot detection.
+    """
+    pot_url = _get_pot_provider_url()
+    if not pot_url:
+        return {}
+
+    # Formato correcto para el plugin bgutil-ytdlp-pot-provider
+    return {
+        "youtubepot-bgutilhttp": {
+            "base_url": pot_url,
+        }
+    }
 
 
 def _get_cookie_file() -> Optional[str]:
@@ -98,6 +129,8 @@ class YouTubeDownloader:
             "nocheckcertificate": True,
             "prefer_insecure": False,
             "age_limit": None,
+            # PO Token provider for YouTube bot-check bypass
+            "extractor_args": _build_extractor_args(),
         }
 
         cookie_file = _get_cookie_file()
@@ -122,6 +155,8 @@ def _build_info_options() -> Dict[str, Any]:
             "Connection": "keep-alive",
         },
         "nocheckcertificate": True,
+        # PO Token provider for YouTube bot-check bypass (metadata lookups too)
+        "extractor_args": _build_extractor_args(),
     }
 
     cookie_file = _get_cookie_file()
@@ -500,7 +535,7 @@ def _download_youtube_video_with_ytdlp(
     task_id: Optional[str] = None,
 ) -> Optional[Path]:
     """
-    Download YouTube video with optimized settings and retry logic.
+    Download YouTube video with optimized settings, PO Token support, and retry logic.
     Returns the path to the downloaded file, or None if download fails.
     """
     logger.info(f"Starting YouTube download: {url}")
@@ -603,7 +638,7 @@ def download_youtube_video(
 ) -> Optional[Path]:
     """
     Download YouTube video using the configured provider.
-    Defaults to free yt-dlp downloads and optionally falls back to Apify when configured.
+    Defaults to free yt-dlp downloads with PO Token support and optionally falls back to Apify when configured.
     """
     logger.info("Starting YouTube download: %s", url)
 
