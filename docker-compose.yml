@@ -101,6 +101,7 @@ services:
       - YOUTUBE_DATA_API_KEY=${YOUTUBE_DATA_API_KEY}
       - YOUTUBE_METADATA_PROVIDER=${YOUTUBE_METADATA_PROVIDER:-yt_dlp}
       - YOUTUBE_DOWNLOAD_PROVIDER=${YOUTUBE_DOWNLOAD_PROVIDER:-yt_dlp}
+      - YOUTUBE_POT_PROVIDER_URL=http://pot-provider:4416
       - LLM=${LLM:-}
       - OPENAI_API_KEY=${OPENAI_API_KEY}
       - GOOGLE_API_KEY=${GOOGLE_API_KEY}
@@ -139,6 +140,8 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+      pot-provider:
+        condition: service_started
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 30s
@@ -206,6 +209,7 @@ services:
       - YOUTUBE_METADATA_PROVIDER=${YOUTUBE_METADATA_PROVIDER:-yt_dlp}
       - YOUTUBE_DOWNLOAD_PROVIDER=${YOUTUBE_DOWNLOAD_PROVIDER:-yt_dlp}
       - YOUTUBE_COOKIES_FILE=/app/youtube-cookies.txt
+      - YOUTUBE_POT_PROVIDER_URL=http://pot-provider:4416
       - LLM=${LLM:-}
       - OPENAI_API_KEY=${OPENAI_API_KEY}
       - GOOGLE_API_KEY=${GOOGLE_API_KEY}
@@ -240,6 +244,15 @@ services:
         condition: service_healthy
       backend:
         condition: service_healthy
+      pot-provider:
+        condition: service_started
+
+  pot-provider:
+    image: brainicism/bgutil-ytdlp-pot-provider:latest
+    container_name: supoclip-pot-provider
+    restart: unless-stopped
+    networks:
+      - default
 
   redis:
     image: redis:7-alpine
