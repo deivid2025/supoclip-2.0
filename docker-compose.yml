@@ -190,7 +190,7 @@ services:
       - clips:/app/clips
       - ./backend/fonts:/app/fonts
       - ./backend/transitions:/app/transitions
-      - /root/youtube-cookies.txt:/app/youtube-cookies.txt:ro
+      #- /root/youtube-cookies.txt:/app/youtube-cookies.txt:ro
     environment:
       - PYTHONPATH=/app
       - PYTHONUNBUFFERED=1
@@ -208,7 +208,7 @@ services:
       - YOUTUBE_DATA_API_KEY=${YOUTUBE_DATA_API_KEY}
       - YOUTUBE_METADATA_PROVIDER=${YOUTUBE_METADATA_PROVIDER:-yt_dlp}
       - YOUTUBE_DOWNLOAD_PROVIDER=${YOUTUBE_DOWNLOAD_PROVIDER:-yt_dlp}
-      - YOUTUBE_COOKIES_FILE=/app/youtube-cookies.txt
+      #- YOUTUBE_COOKIES_FILE=/app/youtube-cookies.txt
       - YOUTUBE_POT_PROVIDER_URL=http://pot-provider:4416
       - LLM=${LLM:-}
       - OPENAI_API_KEY=${OPENAI_API_KEY}
