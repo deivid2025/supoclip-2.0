@@ -54,8 +54,8 @@ def _build_extractor_args() -> Dict[str, Any]:
 
     # Formato correcto para el plugin bgutil-ytdlp-pot-provider
     return {
-        "youtubepot-bgutilhttp": {
-            "base_url": pot_url,
+        "youtube": {
+            "po_token_provider": pot_url,
         }
     }
 
